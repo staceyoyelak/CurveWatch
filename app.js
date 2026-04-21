@@ -55,9 +55,8 @@ startBtn.addEventListener('click', () => {
         onFrame: async () => {
             await pose.send({image: videoElement});
         },
-        facingMode: 'environment', // Uses the back camera
-        width: 480,                // Narrow
-        height: 640                // Tall
+        facingMode: 'environment',
+        // We leave width and height out so the phone picks its own best portrait resolution
     });
     camera.start();
     startBtn.innerText = "Scanning Active...";
