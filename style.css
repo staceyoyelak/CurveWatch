@@ -23,13 +23,17 @@ h1 {
     line-height: 0;
 }
 
-canvas {
-    width: 100%;       /* Fill the width of the phone */
-    height: auto;      /* Keep the proportions correct */
-    max-height: 70vh;  /* Don't let it get too tall */
-    border: 2px solid #444;
-    border-radius: 10px;
+#output_canvas {
+    width: 100%;           /* Fills the phone width */
+    max-width: 500px;      /* Stops it from getting too big on tablets */
+    aspect-ratio: 3 / 4;   /* Matches the standard Portrait camera ratio */
+    object-fit: contain;   /* Ensures the person isn't stretched */
+    
     background-color: #000;
+    border: 3px solid #444;
+    border-radius: 15px;
+    display: block;
+    margin: 10px auto;     /* Centers it */
 }
 
 button {

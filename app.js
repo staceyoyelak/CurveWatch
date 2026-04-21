@@ -55,10 +55,9 @@ startBtn.addEventListener('click', () => {
         onFrame: async () => {
             await pose.send({image: videoElement});
         },
-        facingMode: 'environment',
-        // Flip these for Portrait mode:
-        width: 480, 
-        height: 640 
+        facingMode: 'environment', // Uses the back camera
+        width: 480,                // Narrow
+        height: 640                // Tall
     });
     camera.start();
     startBtn.innerText = "Scanning Active...";
