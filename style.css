@@ -1,0 +1,68 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #1a1a1a; /* Dark theme looks more high-tech */
+    color: white;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    margin: 0;
+}
+
+h1 {
+    color: #4CAF50;
+    margin-bottom: 10px;
+}
+
+#container {
+    position: relative;
+    box-shadow: 0 0 20px rgba(76, 175, 80, 0.5); /* Green glow */
+    border-radius: 15px;
+    overflow: hidden;
+    line-height: 0;
+}
+
+canvas {
+    max-width: 90vw;
+    max-height: 70vh;
+}
+
+button {
+    margin-top: 20px;
+    padding: 15px 40px;
+    font-size: 1.2rem;
+    font-weight: bold;
+    color: white;
+    background: linear-gradient(45deg, #4CAF50, #2E7D32);
+    border: none;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+button:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+}
+.normal { color: #4CAF50; } /* Green */
+.warning { color: #ff4c4c; font-weight: bold; } /* Red */
+#history_container {
+    margin-top: 30px;
+    width: 300px;
+    background: #333;
+    padding: 15px;
+    border-radius: 10px;
+    text-align: left;
+}
+
+#history_list {
+    list-style: none;
+    padding: 0;
+}
+
+#history_list li {
+    padding: 8px 0;
+    border-bottom: 1px solid #555;
+    font-size: 0.9rem;
+}

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CurveWatch AI</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <h1>CurveWatch</h1>
+    
+    <video id="input_video" style="display:none;"></video>
+    <canvas id="output_canvas"></canvas>
+    
+    <h2 id="angle_display" class="normal">Shoulder Tilt: 0°</h2>
+    
+    <button id="start_btn">Start Scanning</button>
+    <button id="save_btn">Save Reading</button>
+
+    <div id="history_container">
+        <h3>Saved History</h3>
+        <button id="clear_btn">Clear All History</button>
+        <ul id="history_list"></ul>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
+    <script src="app.js"></script>
+</body>
+</html>
