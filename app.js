@@ -2,42 +2,88 @@ const videoElement = document.getElementById('input_video');
 const canvasElement = document.getElementById('output_canvas');
 const canvasCtx = canvasElement.getContext('2d');
 const angleDisplay = document.getElementById('angle_display');
+const captureBtn = document.getElementById('capture_btn');
+const saveBtn = document.getElementById('save_btn');
 
-// Initialize Pose
-const pose = new Pose({locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`});
-pose.setOptions({ modelComplexity: 1, minDetectionConfidence: 0.5, minTrackingConfidence: 0.5 });
+// 1. Initialize the Pose AI
+const pose = new Pose({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+});
 
-// Draw the results onto the canvas
+pose.setOptions({
+    modelComplexity: 1,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
+});
+
+// 2. What happens when the AI finds a body
 pose.onResults((results) => {
+    // Match canvas size to the actual video stream size
+    canvasElement.width = videoElement.videoWidth;
+    canvasElement.height = videoElement.videoHeight;
+
+    // Clear the canvas
     canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+    
+    // Draw the captured image frame
     canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
     
+    // Draw the skeleton lines and dots
     if (results.poseLandmarks) {
         drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: '#00FF00', lineWidth: 4});
         drawLandmarks(canvasCtx, results.poseLandmarks, {color: '#FF0000', lineWidth: 2});
         
-        // Calculate the angle (Shoulders)
-        const leftS = results.poseLandmarks[11];
-        const rightS = results.poseLandmarks[12];
+        // Calculate the Shoulder Angle
+        const leftS = results.poseLandmarks[11];  // Left Shoulder
+        const rightS = results.poseLandmarks[12]; // Right Shoulder
+        
+        // Math to find the angle between two points
         const angle = Math.abs(Math.atan2(rightS.y - leftS.y, rightS.x - leftS.x) * 180 / Math.PI);
+        
+        // Update the text on the screen
         angleDisplay.innerText = `Shoulder Tilt: ${angle.toFixed(1)}°`;
+        
+        // Change text color if the tilt is high (Scientific insight!)
+        angleDisplay.style.color = angle > 5 ? "red" : "#333";
     }
 });
 
-// START THE CAMERA
+// 3. Start the Camera Stream
 async function startCamera() {
-    const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" }, // Forces back camera
-        audio: false
-    });
-    videoElement.srcObject = stream;
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { 
+                facingMode: "environment", // Uses back camera
+                width: { ideal: 1280 },
+                height: { ideal: 720 }
+            },
+            audio: false
+        });
+        videoElement.srcObject = stream;
+    } catch (err) {
+        console.error("Error accessing camera: ", err);
+        alert("Please allow camera access to use CurveWatch.");
+    }
 }
 
-// CAPTURE BUTTON LOGIC
-document.getElementById('capture_btn').addEventListener('click', async () => {
-    // Send the current frame to the AI for a single measurement
+// 4. Capture Button Logic
+captureBtn.addEventListener('click', async () => {
+    // Send the current video frame to the AI
     await pose.send({image: videoElement});
-    document.getElementById('save_btn').style.display = 'inline-block';
+    
+    // Show the Save button now that we have a result
+    saveBtn.style.display = 'inline-block';
+    captureBtn.innerText = "Retake Photo";
 });
 
+// 5. History Saving Logic
+saveBtn.addEventListener('click', () => {
+    const historyList = document.getElementById('history_list');
+    const li = document.createElement('li');
+    li.innerText = `${new Date().toLocaleTimeString()}: ${angleDisplay.innerText}`;
+    historyList.appendChild(li);
+    saveBtn.style.display = 'none';
+});
+
+// Start the app
 startCamera();
