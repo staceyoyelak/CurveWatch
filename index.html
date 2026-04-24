@@ -7,19 +7,22 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>CurveWatch</h1>
+    <h1>CurveWatch AI</h1>
     
-    <video id="input_video" style="display:none;"></video>
-    <canvas id="output_canvas"></canvas>
-    
-    <h2 id="angle_display" class="normal">Shoulder Tilt: 0°</h2>
-    
-    <button id="start_btn">Start Scanning</button>
-    <button id="save_btn">Save Reading</button>
+    <div id="camera_container">
+        <video id="input_video" autoplay playsinline></video>
+        <canvas id="output_canvas"></canvas>
+    </div>
+
+    <div id="ui_controls">
+        <h2 id="angle_display">Shoulder Tilt: 0°</h2>
+        <button id="capture_btn">Capture & Measure</button>
+        <button id="save_btn" style="display:none;">Save Result</button>
+        <button id="clear_btn">Clear History</button>
+    </div>
 
     <div id="history_container">
         <h3>Saved History</h3>
-        <button id="clear_btn">Clear All History</button>
         <ul id="history_list"></ul>
     </div>
 
