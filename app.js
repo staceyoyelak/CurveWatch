@@ -68,12 +68,22 @@ async function startCamera() {
 
 // 4. Capture Button Logic
 captureBtn.addEventListener('click', async () => {
-    // Send the current video frame to the AI
-    await pose.send({image: videoElement});
-    
-    // Show the Save button now that we have a result
-    saveBtn.style.display = 'inline-block';
-    captureBtn.innerText = "Retake Photo";
+    if (captureBtn.innerText === "Retake Photo") {
+        // Clear the canvas so we can see the live video again
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        captureBtn.innerText = "Capture & Measure";
+        saveBtn.style.display = 'none';
+        angleDisplay.innerText = "Shoulder Tilt: 0°";
+        angleDisplay.style.color = "#333";
+    } else {
+        // Send the current video frame to the AI
+        await pose.send({image: videoElement});
+        saveBtn.style.display = 'inline-block';
+        captureBtn.innerText = "Retake Photo";
+        
+        // CHECK FOR PROGRESSION / SCOLIOSIS ALERT
+        checkScoliosisAlert();
+    }
 });
 
 // 5. History Saving Logic
@@ -87,3 +97,14 @@ saveBtn.addEventListener('click', () => {
 
 // Start the app
 startCamera();
+// 6. Scoliosis Alert Function
+function checkScoliosisAlert() {
+    // We get the number from the text (e.g., "7.5" from "Shoulder Tilt: 7.5°")
+    const currentAngle = parseFloat(angleDisplay.innerText.replace('Shoulder Tilt: ', ''));
+
+    if (currentAngle > 7.0) {
+        alert("⚠️ High Tilt Detected (" + currentAngle.toFixed(1) + "°)\n\nThis may indicate significant asymmetry. Please consult a specialist for a formal scoliosis screening.");
+    } else if (currentAngle > 3.0) {
+        alert("Notice: Mild asymmetry detected (" + currentAngle.toFixed(1) + "°). Keep monitoring for any changes.");
+    }
+}
