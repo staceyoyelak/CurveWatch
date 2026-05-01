@@ -69,20 +69,31 @@ async function startCamera() {
 // 4. Capture Button Logic
 captureBtn.addEventListener('click', async () => {
     if (captureBtn.innerText === "Retake Photo") {
-        // Clear the canvas so we can see the live video again
+        // Reset the screen
         canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
         captureBtn.innerText = "Capture & Measure";
         saveBtn.style.display = 'none';
         angleDisplay.innerText = "Shoulder Tilt: 0°";
         angleDisplay.style.color = "#333";
     } else {
-        // Send the current video frame to the AI
-        await pose.send({image: videoElement});
-        saveBtn.style.display = 'inline-block';
-        captureBtn.innerText = "Retake Photo";
+        // Change text so the user knows the AI is "thinking"
+        captureBtn.innerText = "Analyzing...";
         
-        // CHECK FOR PROGRESSION / SCOLIOSIS ALERT
-        checkScoliosisAlert();
+        // Use 'await' to make sure the AI finishes pose.send before moving on
+        try {
+            await pose.send({image: videoElement});
+            
+            // Give the AI a tiny heartbeat (100ms) to finish drawing results
+            setTimeout(() => {
+                captureBtn.innerText = "Retake Photo";
+                saveBtn.style.display = 'inline-block';
+                checkScoliosisAlert();
+            }, 100);
+            
+        } catch (error) {
+            console.error("AI Analysis failed:", error);
+            captureBtn.innerText = "Error - Try Again";
+        }
     }
 });
 
