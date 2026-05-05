@@ -100,14 +100,39 @@ captureBtn.addEventListener('click', async () => {
 // 5. History Saving Logic
 saveBtn.addEventListener('click', () => {
     const historyList = document.getElementById('history_list');
+    const angleText = angleDisplay.innerText;
+    const timeStamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    
+    // Create the list item
     const li = document.createElement('li');
-    li.innerText = `${new Date().toLocaleTimeString()}: ${angleDisplay.innerText}`;
-    historyList.appendChild(li);
+    li.style.padding = "10px";
+    li.style.borderBottom = "1px solid #eee";
+    li.innerHTML = `<strong>${timeStamp}</strong>: ${angleText}`;
+    
+    // Add to the top of the list
+    historyList.prepend(li);
+    
+    // Save to LocalStorage (so it doesn't disappear on refresh)
+    const existingHistory = JSON.parse(localStorage.getItem('scoliosis_history') || "[]");
+    existingHistory.push({ time: timeStamp, angle: angleText });
+    localStorage.setItem('scoliosis_history', JSON.stringify(existingHistory));
+
+    // Hide save button so they don't double-save
     saveBtn.style.display = 'none';
+    alert("Reading saved to history!");
 });
 
-// Start the app
-startCamera();
+// 6. Load History on Startup (Add this at the very bottom of app.js)
+function loadSavedHistory() {
+    const historyList = document.getElementById('history_list');
+    const saved = JSON.parse(localStorage.getItem('scoliosis_history') || "[]");
+    saved.reverse().forEach(item => {
+        const li = document.createElement('li');
+        li.innerHTML = `<strong>${item.time}</strong>: ${item.angle}`;
+        historyList.appendChild(li);
+    });
+}
+loadSavedHistory();
 // 6. Scoliosis Alert Function
 function checkScoliosisAlert() {
     // We get the number from the text (e.g., "7.5" from "Shoulder Tilt: 7.5°")
