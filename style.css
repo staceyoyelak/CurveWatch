@@ -1,106 +1,110 @@
-/* General Layout */
+/* 1. General Page Setup */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     text-align: center;
-    background-color: #f8f9fa;
+    background-color: #f0f4f8; /* Light medical blue/grey */
     margin: 0;
     padding: 20px;
-    color: #333;
+    color: #2d3436;
 }
 
 h1 {
-    color: #007bff;
-    margin-bottom: 10px;
+    color: #0984e3;
+    font-weight: 700;
+    margin-bottom: 5px;
 }
 
-/* The Camera Container - This keeps everything tidy */
+/* 2. The Camera Box */
 #camera_container {
     position: relative;
     width: 100%;
-    max-width: 450px; /* Limits size on tablets/laptops */
-    aspect-ratio: 3 / 4; /* Standard portrait photo ratio */
-    margin: 0 auto;
-    border-radius: 20px;
+    max-width: 400px; /* Limits size so it stays phone-shaped */
+    aspect-ratio: 3 / 4; 
+    margin: 20px auto;
+    background-color: #000;
+    border-radius: 24px;
     overflow: hidden;
-    background: #000;
-    box-shadow: 0 12px 24px rgba(0,0,0,0.15);
-    border: 4px solid #fff;
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    border: 6px solid white;
 }
 
-/* The Video and Canvas Layers */
+/* 3. Video and Canvas Layers */
 #input_video, #output_canvas {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    /* 'contain' ensures no squishing and no zooming */
+    /* 'contain' is the SECRET FIX for squishing/zooming */
     object-fit: contain; 
 }
 
 #output_canvas {
-    z-index: 5; /* Ensures the skeleton is always on top */
+    z-index: 10; /* Keeps the skeleton on top of the video */
 }
 
-/* UI and Buttons */
+/* 4. Controls and Buttons */
 #ui_controls {
-    margin-top: 25px;
+    margin-top: 20px;
     display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 12px;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
 }
 
 #angle_display {
-    width: 100%;
-    font-size: 1.5rem;
-    margin-bottom: 10px;
-    font-weight: bold;
+    font-size: 1.8rem;
+    margin: 10px 0;
+    color: #2d3436;
+    transition: color 0.3s ease;
 }
 
 button {
-    padding: 14px 24px;
-    font-size: 1rem;
+    width: 85%;
+    max-width: 300px;
+    padding: 16px;
+    font-size: 1.1rem;
     font-weight: 600;
-    border-radius: 10px;
+    border-radius: 14px;
     border: none;
     cursor: pointer;
-    transition: transform 0.1s, background-color 0.2s;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
 }
 
 button:active {
-    transform: scale(0.95);
+    transform: scale(0.96);
 }
 
-/* Button Colors */
+/* 5. Button Colors */
 #capture_btn {
-    background-color: #007bff;
+    background-color: #0984e3;
     color: white;
-    width: 85%; /* Makes the main action button stand out */
 }
 
 #save_btn {
-    background-color: #28a745;
+    background-color: #00b894; /* Healthy green */
     color: white;
 }
 
 #clear_btn {
-    background-color: #6c757d;
+    background-color: #b2bec3;
     color: white;
+    font-size: 0.9rem;
+    width: 60%;
 }
 
-/* History Section */
+/* 6. History List */
 #history_container {
-    margin-top: 30px;
+    margin-top: 40px;
     text-align: left;
-    max-width: 450px;
+    max-width: 400px;
     margin-left: auto;
     margin-right: auto;
     background: white;
-    padding: 15px;
-    border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    padding: 20px;
+    border-radius: 18px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
 }
 
 #history_list {
@@ -109,7 +113,9 @@ button:active {
 }
 
 #history_list li {
-    padding: 8px 0;
-    border-bottom: 1px solid #eee;
-    font-size: 0.9rem;
+    padding: 12px 0;
+    border-bottom: 1px solid #dfe6e9;
+    font-size: 1rem;
+    display: flex;
+    justify-content: space-between;
 }
