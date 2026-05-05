@@ -53,16 +53,21 @@ async function startCamera() {
     try {
         const stream = await navigator.mediaDevices.getUserMedia({
             video: { 
-                facingMode: "environment", // Uses back camera
-                width: { ideal: 1280 },
-                height: { ideal: 720 }
+                facingMode: "environment",
+                width: { ideal: 640 },
+                height: { ideal: 480 }
             },
             audio: false
         });
         videoElement.srcObject = stream;
+        
+        // This line ensures the video actually plays
+        videoElement.onloadedmetadata = () => {
+            videoElement.play();
+        };
     } catch (err) {
-        console.error("Error accessing camera: ", err);
-        alert("Please allow camera access to use CurveWatch.");
+        console.error("Camera Error: ", err);
+        alert("Camera blocked. Please check site permissions in your browser settings.");
     }
 }
 
@@ -143,4 +148,4 @@ function checkScoliosisAlert() {
     } else if (currentAngle > 3.0) {
         alert("Notice: Mild asymmetry detected (" + currentAngle.toFixed(1) + "°). Keep monitoring for any changes.");
     }
-}
+}startCamera();
