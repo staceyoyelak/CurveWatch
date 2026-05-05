@@ -11,7 +11,7 @@ const pose = new Pose({
 });
 
 pose.setOptions({
-    modelComplexity: 1,
+    modelComplexity: 0,
     minDetectionConfidence: 0.5,
     minTrackingConfidence: 0.5
 });
@@ -59,45 +59,59 @@ async function startCamera() {
             },
             audio: false
         });
+        
         videoElement.srcObject = stream;
         
-        // This line ensures the video actually plays
+        // This is the "Magic" part that prevents the black screen/freeze
         videoElement.onloadedmetadata = () => {
             videoElement.play();
         };
+
     } catch (err) {
         console.error("Camera Error: ", err);
-        alert("Camera blocked. Please check site permissions in your browser settings.");
     }
 }
 
 // 4. Capture Button Logic
 captureBtn.addEventListener('click', async () => {
+    
+    // --- MODE 1: RETAKING (If the button says "Retake Photo") ---
     if (captureBtn.innerText === "Retake Photo") {
-        // Reset the screen
+        // 1. Clear the canvas markings
         canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        
+        // 2. Unfreeze the camera
+        videoElement.play();
+        
+        // 3. Reset the UI
         captureBtn.innerText = "Capture & Measure";
         saveBtn.style.display = 'none';
         angleDisplay.innerText = "Shoulder Tilt: 0°";
         angleDisplay.style.color = "#333";
-    } else {
-        // Change text so the user knows the AI is "thinking"
+    } 
+    
+    // --- MODE 2: CAPTURING (If the button says "Capture & Measure") ---
+    else {
         captureBtn.innerText = "Analyzing...";
         
-        // Use 'await' to make sure the AI finishes pose.send before moving on
         try {
+            // 1. Tell the AI to process the current frame
             await pose.send({image: videoElement});
             
-            // Give the AI a tiny heartbeat (100ms) to finish drawing results
-            setTimeout(() => {
-                captureBtn.innerText = "Retake Photo";
-                saveBtn.style.display = 'inline-block';
-                checkScoliosisAlert();
-            }, 100);
+            // 2. Freeze the camera so the user can see the result
+            videoElement.pause();
+            
+            // 3. Update the button
+            captureBtn.innerText = "Retake Photo";
+            saveBtn.style.display = 'inline-block';
+            
+            // 4. Check if we need to show a scoliosis alert
+            checkScoliosisAlert();
             
         } catch (error) {
             console.error("AI Analysis failed:", error);
             captureBtn.innerText = "Error - Try Again";
+            videoElement.play(); // Make sure it doesn't stay frozen on an error
         }
     }
 });
@@ -148,4 +162,4 @@ function checkScoliosisAlert() {
     } else if (currentAngle > 3.0) {
         alert("Notice: Mild asymmetry detected (" + currentAngle.toFixed(1) + "°). Keep monitoring for any changes.");
     }
-}startCamera();
+}startCamera(); 
