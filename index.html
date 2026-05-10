@@ -11,8 +11,10 @@
     <h1>CurveWatch AI</h1>
     
     <div id="camera_container">
-        <!-- The 'muted' and 'playsinline' tags are CRITICAL for iPhones to show the camera -->
+        <div id="level_indicator">Move Phone to Center</div>
+
         <video id="input_video" autoplay playsinline muted></video>
+        
         <canvas id="output_canvas"></canvas>
     </div>
 
@@ -21,24 +23,19 @@
         
         <button id="capture_btn">Capture & Measure</button>
         
-        <!-- These buttons stay hidden until a photo is taken -->
         <button id="save_btn" style="display:none;">Save Result</button>
         <button id="clear_btn">Clear History</button>
     </div>
 
     <div id="history_container">
         <h3>Saved History</h3>
-        <ul id="history_list">
-            <!-- Readings will appear here from JavaScript -->
-        </ul>
+        <ul id="history_list"></ul>
     </div>
 
-    <!-- MediaPipe AI Libraries (The 'Engine' of the app) -->
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils"></script>
     
-    <!-- Your Custom Logic -->
     <script src="app.js"></script>
 </body>
 </html>

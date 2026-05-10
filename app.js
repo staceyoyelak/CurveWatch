@@ -163,3 +163,29 @@ function checkScoliosisAlert() {
         alert("Notice: Mild asymmetry detected (" + currentAngle.toFixed(1) + "°). Keep monitoring for any changes.");
     }
 }startCamera(); 
+const levelIndicator = document.getElementById('level_indicator');
+
+// This function checks the phone's physical tilt
+window.addEventListener('deviceorientation', (event) => {
+    // Beta: Tilting the phone forward/backward (-90 to 90)
+    // Gamma: Tilting the phone left/right (-90 to 90)
+    const tiltFB = event.beta; 
+    const tiltLR = event.gamma;
+
+    // We want the phone to be nearly vertical (Beta approx 90) 
+    // and not tilted sideways (Gamma approx 0)
+    const isLevel = (tiltFB > 75 && tiltFB < 105) && (Math.abs(tiltLR) < 5);
+
+    if (isLevel) {
+        levelIndicator.innerText = "✓ Phone Level";
+        levelIndicator.style.background = "rgba(40, 167, 69, 0.9)"; // Green
+        captureBtn.disabled = false;
+        captureBtn.style.opacity = "1";
+    } else {
+        levelIndicator.innerText = "⚠ Straighten Phone";
+        levelIndicator.style.background = "rgba(220, 53, 69, 0.9)"; // Red
+        captureBtn.disabled = true;
+        captureBtn.style.opacity = "0.5";
+    }
+    levelIndicator.style.display = "block";
+});

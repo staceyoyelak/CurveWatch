@@ -119,3 +119,18 @@ button:active {
     display: flex;
     justify-content: space-between;
 }
+#level_indicator {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    padding: 8px 15px;
+    border-radius: 20px;
+    background: rgba(255, 0, 0, 0.8); /* Red by default */
+    color: white;
+    font-weight: bold;
+    font-size: 0.9rem;
+    pointer-events: none;
+    display: none; /* Hidden until camera starts */
+}
