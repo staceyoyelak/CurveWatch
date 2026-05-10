@@ -1,184 +1,28 @@
+// 1. SETUP - Get all the pieces from the HTML
 const videoElement = document.getElementById('input_video');
 const canvasElement = document.getElementById('output_canvas');
 const canvasCtx = canvasElement.getContext('2d');
 const angleDisplay = document.getElementById('angle_display');
 const captureBtn = document.getElementById('capture_btn');
 const saveBtn = document.getElementById('save_btn');
-
-// 1. Initialize the Pose AI
-const pose = new Pose({
-    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
-});
-
-pose.setOptions({
-    modelComplexity: 0,
-    minDetectionConfidence: 0.5,
-    minTrackingConfidence: 0.5
-});
-
-// 2. What happens when the AI finds a body
-pose.onResults((results) => {
-    // Match canvas size to the actual video stream size
-    canvasElement.width = videoElement.videoWidth;
-    canvasElement.height = videoElement.videoHeight;
-
-    // Clear the canvas
-    canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-    
-    // Draw the captured image frame
-    canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
-    
-    // Draw the skeleton lines and dots
-    if (results.poseLandmarks) {
-        drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: '#00FF00', lineWidth: 4});
-        drawLandmarks(canvasCtx, results.poseLandmarks, {color: '#FF0000', lineWidth: 2});
-        
-        // Calculate the Shoulder Angle
-        const leftS = results.poseLandmarks[11];  // Left Shoulder
-        const rightS = results.poseLandmarks[12]; // Right Shoulder
-        
-        // Math to find the angle between two points
-        const angle = Math.abs(Math.atan2(rightS.y - leftS.y, rightS.x - leftS.x) * 180 / Math.PI);
-        
-        // Update the text on the screen
-        angleDisplay.innerText = `Shoulder Tilt: ${angle.toFixed(1)}°`;
-        
-        // Change text color if the tilt is high (Scientific insight!)
-        angleDisplay.style.color = angle > 5 ? "red" : "#333";
-    }
-});
-
-// 3. Start the Camera Stream
-async function startCamera() {
-    try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            video: { 
-                facingMode: "environment",
-                width: { ideal: 640 },
-                height: { ideal: 480 }
-            },
-            audio: false
-        });
-        
-        videoElement.srcObject = stream;
-        
-        // This is the "Magic" part that prevents the black screen/freeze
-        videoElement.onloadedmetadata = () => {
-            videoElement.play();
-        };
-
-    } catch (err) {
-        console.error("Camera Error: ", err);
-    }
-}
-
-// 4. Capture Button Logic
-captureBtn.addEventListener('click', async () => {
-    
-    // --- MODE 1: RETAKING (If the button says "Retake Photo") ---
-    if (captureBtn.innerText === "Retake Photo") {
-        // 1. Clear the canvas markings
-        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
-        
-        // 2. Unfreeze the camera
-        videoElement.play();
-        
-        // 3. Reset the UI
-        captureBtn.innerText = "Capture & Measure";
-        saveBtn.style.display = 'none';
-        angleDisplay.innerText = "Shoulder Tilt: 0°";
-        angleDisplay.style.color = "#333";
-    } 
-    
-    // --- MODE 2: CAPTURING (If the button says "Capture & Measure") ---
-    else {
-        captureBtn.innerText = "Analyzing...";
-        
-        try {
-            // 1. Tell the AI to process the current frame
-            await pose.send({image: videoElement});
-            
-            // 2. Freeze the camera so the user can see the result
-            videoElement.pause();
-            
-            // 3. Update the button
-            captureBtn.innerText = "Retake Photo";
-            saveBtn.style.display = 'inline-block';
-            
-            // 4. Check if we need to show a scoliosis alert
-            checkScoliosisAlert();
-            
-        } catch (error) {
-            console.error("AI Analysis failed:", error);
-            captureBtn.innerText = "Error - Try Again";
-            videoElement.play(); // Make sure it doesn't stay frozen on an error
-        }
-    }
-});
-
-// 5. History Saving Logic
-saveBtn.addEventListener('click', () => {
-    const historyList = document.getElementById('history_list');
-    const angleText = angleDisplay.innerText;
-    const timeStamp = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
-    // Create the list item
-    const li = document.createElement('li');
-    li.style.padding = "10px";
-    li.style.borderBottom = "1px solid #eee";
-    li.innerHTML = `<strong>${timeStamp}</strong>: ${angleText}`;
-    
-    // Add to the top of the list
-    historyList.prepend(li);
-    
-    // Save to LocalStorage (so it doesn't disappear on refresh)
-    const existingHistory = JSON.parse(localStorage.getItem('scoliosis_history') || "[]");
-    existingHistory.push({ time: timeStamp, angle: angleText });
-    localStorage.setItem('scoliosis_history', JSON.stringify(existingHistory));
-
-    // Hide save button so they don't double-save
-    saveBtn.style.display = 'none';
-    alert("Reading saved to history!");
-});
-
-// 6. Load History on Startup (Add this at the very bottom of app.js)
-function loadSavedHistory() {
-    const historyList = document.getElementById('history_list');
-    const saved = JSON.parse(localStorage.getItem('scoliosis_history') || "[]");
-    saved.reverse().forEach(item => {
-        const li = document.createElement('li');
-        li.innerHTML = `<strong>${item.time}</strong>: ${item.angle}`;
-        historyList.appendChild(li);
-    });
-}
-loadSavedHistory();
-// 6. Scoliosis Alert Function
-function checkScoliosisAlert() {
-    // We get the number from the text (e.g., "7.5" from "Shoulder Tilt: 7.5°")
-    const currentAngle = parseFloat(angleDisplay.innerText.replace('Shoulder Tilt: ', ''));
-
-    if (currentAngle > 7.0) {
-        alert("⚠️ High Tilt Detected (" + currentAngle.toFixed(1) + "°)\n\nThis may indicate significant asymmetry. Please consult a specialist for a formal scoliosis screening.");
-    } else if (currentAngle > 3.0) {
-        alert("Notice: Mild asymmetry detected (" + currentAngle.toFixed(1) + "°). Keep monitoring for any changes.");
-    }
-}startCamera(); 
+const levelIndicator = document.getElementById('level_indicator');
 const sensorBtn = document.getElementById('sensor_btn');
 
+// 2. THE SENSOR LOGIC (iPhone Fix)
 sensorBtn.addEventListener('click', async () => {
-    // Check if the phone is an iPhone (iOS) which needs permission
-    if (typeof DeviceOrientationEvent.requestPermission === 'function') {
+    // Check if the device needs permission (iOS)
+    if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
         try {
             const permission = await DeviceOrientationEvent.requestPermission();
             if (permission === 'granted') {
                 startTracking();
-                sensorBtn.style.display = 'none'; // Hide button once working
+                sensorBtn.style.display = 'none';
             }
         } catch (error) {
-            alert("Permission denied. Check your browser settings.");
+            alert("Please allow motion sensors in your iPhone settings.");
         }
     } else {
-        // For Android/Laptop, permission is usually automatic
+        // Android or Laptop (automatic)
         startTracking();
         sensorBtn.style.display = 'none';
     }
@@ -186,19 +30,19 @@ sensorBtn.addEventListener('click', async () => {
 
 function startTracking() {
     window.addEventListener('deviceorientation', (event) => {
-        const tiltFB = event.beta; 
-        const tiltLR = event.gamma;
+        const tiltFB = event.beta; // Forward/Back
+        const tiltLR = event.gamma; // Left/Right
 
-        // BTYSTE Logic: Only allow capture if phone is within 5 degrees of perfect
-        const isLevel = (tiltFB > 85 && tiltFB < 95) && (Math.abs(tiltLR) < 5);
+        // Range for BTYSTE quality: Vertical (75-105) and Level (-5 to 5)
+        const isLevel = (tiltFB > 75 && tiltFB < 105) && (Math.abs(tiltLR) < 5);
 
         if (isLevel) {
-            levelIndicator.innerText = "✓ Phone Level (Ready)";
+            levelIndicator.innerText = "✓ Phone Level";
             levelIndicator.style.background = "rgba(40, 167, 69, 0.9)";
             captureBtn.disabled = false;
             captureBtn.style.opacity = "1";
         } else {
-            levelIndicator.innerText = "⚠ Tilt: " + Math.round(tiltLR) + "° | Straighten Phone";
+            levelIndicator.innerText = `⚠ Straighten Phone (${Math.round(tiltLR)}°)`;
             levelIndicator.style.background = "rgba(220, 53, 69, 0.9)";
             captureBtn.disabled = true;
             captureBtn.style.opacity = "0.5";
@@ -206,3 +50,69 @@ function startTracking() {
         levelIndicator.style.display = "block";
     });
 }
+
+// 3. THE CAMERA LOGIC
+async function startCamera() {
+    try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" },
+            audio: false
+        });
+        videoElement.srcObject = stream;
+        videoElement.onloadedmetadata = () => videoElement.play();
+    } catch (err) {
+        console.error("Camera error:", err);
+    }
+}
+
+// 4. THE AI LOGIC (MediaPipe)
+const pose = new Pose({
+    locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/pose/${file}`
+});
+
+pose.setOptions({
+    modelComplexity: 1,
+    smoothLandmarks: true,
+    minDetectionConfidence: 0.5,
+    minTrackingConfidence: 0.5
+});
+
+pose.onResults((results) => {
+    canvasCtx.save();
+    canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+    canvasCtx.drawImage(results.image, 0, 0, canvasElement.width, canvasElement.height);
+
+    if (results.poseLandmarks) {
+        const leftShoulder = results.poseLandmarks[11];
+        const rightShoulder = results.poseLandmarks[12];
+
+        // Math for the angle
+        const dy = leftShoulder.y - rightShoulder.y;
+        const dx = leftShoulder.x - rightShoulder.x;
+        const angle = Math.atan2(dy, dx) * (180 / Math.PI);
+        const tilt = Math.abs(angle).toFixed(1);
+
+        angleDisplay.innerText = `Shoulder Tilt: ${tilt}°`;
+
+        // Draw dots for the judge to see
+        drawConnectors(canvasCtx, results.poseLandmarks, POSE_CONNECTIONS, {color: '#00FF00', lineWidth: 4});
+        drawLandmarks(canvasCtx, results.poseLandmarks, {color: '#FF0000', lineWidth: 2});
+    }
+    canvasCtx.restore();
+});
+
+// 5. CAPTURE & RETAKE LOGIC
+captureBtn.addEventListener('click', async () => {
+    if (captureBtn.innerText === "Retake Photo") {
+        canvasCtx.clearRect(0, 0, canvasElement.width, canvasElement.height);
+        videoElement.play();
+        captureBtn.innerText = "Capture & Measure";
+    } else {
+        await pose.send({image: videoElement});
+        videoElement.pause();
+        captureBtn.innerText = "Retake Photo";
+    }
+});
+
+// START
+startCamera();
